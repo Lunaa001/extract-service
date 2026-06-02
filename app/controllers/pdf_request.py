@@ -15,6 +15,7 @@ class PdfRequest(BaseModel):
 
     file_name: str = Field(min_length=1)
     content: str = Field(min_length=1)
+    max_pages: int | None = Field(default=None, ge=1)
 
     @field_validator("content")
     @classmethod

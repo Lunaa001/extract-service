@@ -1,12 +1,15 @@
 [project]
 name = "extract-text-service"
 version = "0.1.0"
-description = "Add your description here"
+description = "PDF text extraction microservice with embedded text and OCR support"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "docling==2.85.0",
     "fastapi==0.135.3",
+    "pdfplumber>=0.10.0",
+    "pytesseract>=0.3.10",
+    "pdf2image>=1.17.0",
+    "Pillow>=10.0.0",
     "python-dotenv>=1.2.2",
     "uvicorn>=0.35.0",
 ]
