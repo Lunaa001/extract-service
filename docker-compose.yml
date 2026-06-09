@@ -1,0 +1,36 @@
+services:
+    extractor:
+        image: notebookum-extractor:v1.0.0
+        restart: unless-stopped
+        deploy:
+            replicas: 1
+        networks:
+            notebookum-network:
+                aliases:
+                    - extractor.universidad.localhost
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.extractor.rule=Host(`extractor.universidad.localhost`)"
+            - "traefik.http.routers.extractor.entryPoints=https"
+            - "traefik.http.routers.extractor.tls=true"
+            - "traefik.http.services.extractor.loadbalancer.server.port=5000"
+            - "traefik.http.routers.extractor.middlewares=extractor-cb,bulkhead-extractor,cors-extractor"
+            # CORS via Traefik
+            - "traefik.http.middlewares.cors-extractor.headers.accesscontrolalloworiginlist=*"
+            - "traefik.http.middlewares.cors-extractor.headers.accesscontrolallowmethods=GET,POST,OPTIONS"
+            - "traefik.http.middlewares.cors-extractor.headers.accesscontrolallowheaders=Content-Type,Authorization"
+            - "traefik.http.middlewares.cors-extractor.headers.addvaryheader=true"
+            # Circuit Breaker
+            - "traefik.http.middlewares.extractor-cb.circuitbreaker.expression=NetworkErrorRatio() > 0.5"
+            # Bulkhead
+            - "traefik.http.middlewares.bulkhead-extractor.inflightreq.amount=20"
+        environment:
+            - HOST=0.0.0.0
+            - PORT=5000
+            - REDIS_HOST=redis
+            - REDIS_PORT=6379
+            - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+
+networks:
+    notebookum-network:
+        external: true
