@@ -26,17 +26,19 @@ async def lifespan(app: FastAPI):
     """Manage application lifecycle — startup and shutdown."""
     # Startup — register with Consul
     logger.info("Starting Extract Service...")
-    from app.consul_registration import register_service, deregister_service
+    from app.consul_registration import register_service, deregister_service, fetch_kv_config
+
+    # Load config from Consul KV
+    kv_config = fetch_kv_config(SERVICE_NAME)
+    global SERVICE_PORT
+    if "PORT" in kv_config:
+        SERVICE_PORT = int(kv_config["PORT"])
+
+    # Register — tags are read from Consul KV automatically (no hardcoded labels)
     register_service(
         service_name=SERVICE_NAME,
         service_port=SERVICE_PORT,
         health_check_path="/health",
-        tags=[
-            "traefik.enable=true",
-            "traefik.http.routers.extract-service.rule=Host(`extractor.universidad.localhost`)",
-            "traefik.http.routers.extract-service.entryPoints=http,https",
-            "traefik.http.services.extract-service.loadbalancer.server.port=5000",
-        ],
     )
     logger.info("✓ Extract Service ready")
 
