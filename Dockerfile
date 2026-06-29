@@ -46,9 +46,10 @@ ENV PATH="/opt/venv/bin:$PATH" \
 # Exponer puerto
 EXPOSE 5000
 
-# Health check
+# Health check (urllib es stdlib; "curl" nunca se instala en este runtime,
+# así que el healthcheck anterior fallaba siempre con "command not found")
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:5000/health || exit 1
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:5000/health', timeout=5)" || exit 1
 
 # Comando por defecto
 CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5000"]
